@@ -1,0 +1,2 @@
+LIBRARY JA_Asm_Dll
+EXPORTS subtractionAsm
