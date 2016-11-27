@@ -27,7 +27,7 @@ int numberOfThreadsFunction()
 void __cdecl ThreadProcCpp(void * Args)
 {
 	int i = index++;
-//	s1 subtraction( firstMatrix, secondMatrix, differentialMatrix, X, Y);
+//	void subtraction( firstMatrix, secondMatrix, differentialMatrix, X, Y);
 	cout << "using thread # " << i << " for function in cpp" << endl;
 	_endthread();
 }
@@ -69,6 +69,7 @@ int main(int argc, char* argv[])
 
 			__int16 firstMatrix[N_MAX][M_MAX];
 			__int16 secondMatrix[N_MAX][M_MAX];
+			__int16 differentialMatrix[N_MAX][M_MAX];
 
 			int numberOfRows = stoi(argv[3]);
 			int numberOfColumns = stoi(argv[4]);
@@ -107,6 +108,22 @@ int main(int argc, char* argv[])
 
 					FreeLibrary(lib);
 				}
+
+				fstream outFile;
+				outFile.open("wynik.txt", ios::out);
+				if (outFile.good()) {
+					cout << "Saving matrix after subtraction: " << endl;
+					for (int i = 0; i < numberOfRows; i++) {
+						for (int j = 0; j < numberOfColumns; j++) {
+							outFile << differentialMatrix[i][j] << " ";
+						}
+					}
+				}
+				else {
+					std::cout << "Output File ERROR";
+				}
+				outFile.close();
+
 			}
 			else 
 			{
