@@ -27,7 +27,7 @@ int numberOfThreadsFunction()
 void __cdecl ThreadProcCpp(void * Args)
 {
 	int i = index++;
-//	void subtraction( firstMatrix, secondMatrix, differentialMatrix, X, Y);
+//	void subtraction( Matrix, secondMatrix, X, Y);
 	cout << "using thread # " << i << " for function in cpp" << endl;
 	_endthread();
 }
@@ -67,16 +67,15 @@ int main(int argc, char* argv[])
 		{
 			cout << "File open" << endl;
 
-			__int16 firstMatrix[N_MAX][M_MAX];
+			__int16 Matrix[N_MAX][M_MAX];
 			__int16 secondMatrix[N_MAX][M_MAX];
-			__int16 differentialMatrix[N_MAX][M_MAX];
 
 			int numberOfRows = stoi(argv[3]);
 			int numberOfColumns = stoi(argv[4]);
 			
 			for (int i = 0; i < numberOfRows; i++)
 				for (int j = 0; j < numberOfColumns; j++)
-					inFile >> firstMatrix[i][j];
+					inFile >> Matrix[i][j];
 			for (int i = 0; i < numberOfRows; i++)
 				for (int j = 0; j < numberOfColumns; j++)
 					inFile >> secondMatrix[i][j];
@@ -115,7 +114,7 @@ int main(int argc, char* argv[])
 					cout << "Saving matrix after subtraction: " << endl;
 					for (int i = 0; i < numberOfRows; i++) {
 						for (int j = 0; j < numberOfColumns; j++) {
-							outFile << differentialMatrix[i][j] << " ";
+							outFile << Matrix[i][j] << " ";
 						}
 					}
 				}

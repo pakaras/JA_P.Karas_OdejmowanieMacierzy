@@ -16,13 +16,10 @@
 #define N_MAX 30
 #define M_MAX 50
 
-typedef struct {
-	__int16 matrix[N_MAX][M_MAX];
-} s1;
 
 extern "C"
 {
-	DECLDIR s1 subtraction(double **firstMatrix, double **secondMatrix, double **differentialMatrix, int X, int Y);
+	DECLDIR void subtraction(double *tab1, double *tab2, int sizeOfMatrix[2]);
 }
 
 #endif

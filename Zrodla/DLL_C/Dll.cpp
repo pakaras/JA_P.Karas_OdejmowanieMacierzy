@@ -5,19 +5,14 @@
 
 #define DLL_EXPORT
 
-typedef struct {
-	__int16 matrix[N_MAX][M_MAX];
-} s1;
 
 extern "C"
 {
-	DECLDIR s1 subtraction(double **firstMatrix, double **secondMatrix, double **differentialMatrix, int X, int Y)
+	DECLDIR void subtraction(double **tab1, double **tab2, int sizeOfMatrix[2])
 	{
-		s1 s;
-		for (int i = 0; i<X; ++i)
-			for (int j = 0; j<Y; ++j)
-				differentialMatrix[i][j] = firstMatrix[i][j] - secondMatrix[i][j];
-		return s;
+		for (int i = 0; i<sizeOfMatrix[1]; ++i)
+			for (int j = 0; j<sizeOfMatrix[0]; ++j)
+				tab1[i][j] =-tab2[i][j];
 	}
 
 }
