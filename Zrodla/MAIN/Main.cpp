@@ -5,6 +5,7 @@
 #include <vector>
 #include <windows.h>
 #include <process.h>
+#include <thread>
 #include <cstdlib>
 #include "../JA_Cpp_Dll/Dll.h"
 
@@ -27,8 +28,11 @@ int numberOfThreadsFunction()
 void __cdecl ThreadProcCpp(void * Args)
 {
 	int i = index++;
-//	void subtraction( Matrix, secondMatrix, X, Y);
-	cout << "using thread # " << i << " for function in cpp" << endl;
+	for (int i = 0; i < numberOfThreads; i++)
+	{
+		//	void subtraction( Matrix, secondMatrix, X, Y);
+		cout << "using thread # " << i << " for function in cpp" << endl;
+	}
 	_endthread();
 }
 
@@ -42,11 +46,13 @@ void __cdecl ThreadProcAsm(void * Args)
 
 int main(int argc, char* argv[])
 {
-	int numberOfThreads;
+	int numberOfThreads = 0;
 	clock_t t;
 	t = clock();
 	subtractionAsm myFunc;
 	HMODULE lib;
+	int *threadsRange = NULL;
+	threadsRange = new int[numberOfThreads];
 
 	if (argc >= 5) 
 	{ 
@@ -72,13 +78,22 @@ int main(int argc, char* argv[])
 
 			int numberOfRows = stoi(argv[3]);
 			int numberOfColumns = stoi(argv[4]);
-			
+
 			for (int i = 0; i < numberOfRows; i++)
 				for (int j = 0; j < numberOfColumns; j++)
 					inFile >> Matrix[i][j];
 			for (int i = 0; i < numberOfRows; i++)
 				for (int j = 0; j < numberOfColumns; j++)
 					inFile >> secondMatrix[i][j];
+
+			for (int i = 0; i < numberOfThreads; i++)
+			{
+				threadsRange[i] = numberOfRows * i / numberOfThreads;
+			}
+
+			for (int i = 0; i < numberOfThreads + 1; i++) {
+				cout << i << threadsRange[i] << endl;
+			}
 
 			vector < HANDLE > threads;
 
@@ -148,7 +163,7 @@ int main(int argc, char* argv[])
 
 	t = clock() - t;
 	cout << "Time: " << t << " ms" << endl;
-
+	
 	system("PAUSE");
 	return 0;
 }
