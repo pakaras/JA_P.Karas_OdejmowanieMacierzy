@@ -8,16 +8,13 @@
 #include <cstdlib>								
 #include "../JA_Cpp_Dll/Dll.h"
 
-#define N_MAX 30
-#define M_MAX 50
-
 using namespace std;
 
 typedef DWORD(*subtractionAsm)();
 int index = 0;
 int numberOfThreads = 0;
-__int16 Matrix[N_MAX][M_MAX];
-__int16 secondMatrix[N_MAX][M_MAX];
+__int16 **Matrix = NULL;
+__int16 **secondMatrix = NULL;
 
 int numberOfThreadsFunction()
 {
@@ -70,6 +67,14 @@ int main(int argc, char* argv[])
 
 			int numberOfRows = stoi(argv[3]);
 			int numberOfColumns = stoi(argv[4]);
+			Matrix = new __int16 *[numberOfRows];
+			secondMatrix = new __int16 *[numberOfRows];
+
+			for (int i = 0; i < numberOfRows; i++)
+			{
+				Matrix[i] = new __int16[numberOfColumns];
+				secondMatrix[i] = new __int16[numberOfColumns];
+			}
 
 			for (int i = 0; i < numberOfRows; i++)
 				for (int j = 0; j < numberOfColumns; j++)
@@ -125,6 +130,18 @@ int main(int argc, char* argv[])
 	t = clock() - t;
 	cout << "Time: " << t << " ms" << endl;
 	
+	for (int i = 0; i < stoi(argv[3]); i++) 
+	{
+		delete(Matrix[i]);
+		delete(secondMatrix[i]);
+		Matrix[i] = NULL;
+		secondMatrix[i] = NULL;
+	}
+	delete(Matrix);
+	delete(secondMatrix);
+	Matrix = NULL;
+	secondMatrix = NULL;
+
 	system("PAUSE");
 	return 0;
 }
