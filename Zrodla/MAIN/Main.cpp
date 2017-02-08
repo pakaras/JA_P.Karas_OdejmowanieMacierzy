@@ -1,100 +1,109 @@
-﻿#include <iostream>
-#include <time.h>
-#include <fstream>
+﻿#include <iostream> 
+#include <Windows.h>
+#include <thread>
 #include <string>
-#include <vector>
-#include <windows.h>
-#include <process.h>														
-#include <cstdlib>								
+#include <fstream>
+
 #include "../JA_Cpp_Dll/Dll.h"
 
-using namespace std;
-
-typedef DWORD(*subtractionAsm)();
-int index = 0;
-int numberOfThreads = 0;
-__int16 **Matrix = NULL;
-__int16 **secondMatrix = NULL;
-
-int numberOfThreadsFunction()
-{
-	SYSTEM_INFO sysinfo;
-	GetSystemInfo(&sysinfo);
-
-	return sysinfo.dwNumberOfProcessors;
-}
-
-void __cdecl ThreadProcCpp(void * Args)
-{
-	int i = index++;
-	for (int i = 0; i < numberOfThreads; i++)
-	{
-		subtraction( Matrix, secondMatrix, X, Y);
-	}
-	_endthread();
-}
-
-void __cdecl ThreadProcAsm(void * Args)
-{
-	int i = index++;
-
-	_endthread();
-}
+typedef __int16(*subtractionAsm)(__int16 ***tab, int area[2], int size);
+typedef __int16(__stdcall *subtraction)(__int16 ***tab, int area[2], int size);
 
 int main(int argc, char* argv[])
 {
 
+	int numberOfThreads;
+	unsigned int threadCount=std::thread::hardware_concurrency();
+	
 	clock_t t;
 	t = clock();
-	subtractionAsm myFunc;
+
 	HMODULE lib;
+	subtractionAsm myFunc;
 
 	if (argc >= 5) 
 	{ 
 		if (argc = 6) 
 		{ 
-			numberOfThreads = stoi(argv[5]);
+			numberOfThreads = std::stoi(argv[5]);
 		}
 		else 
 		{
-			numberOfThreads = numberOfThreadsFunction();
+			numberOfThreads = threadCount;
 		}
+		
+		std::thread *threadsArray = NULL; 
+		int *threadsArea = NULL;
+		int size[2] = { std::stoi(argv[3]), std::stoi(argv[4])};
+		int area[2];
+		__int16 **matrixArray[3] = {NULL, NULL,NULL};
 
-		fstream inFile;
-		inFile.open(argv[2], ios::in | ios::out);
+		std::fstream inFile;
+		inFile.open(argv[2], std::ios::in | std::ios::out);
 		if (inFile.good() == true) 
 		{
 
-			int numberOfRows = stoi(argv[3]);
-			int numberOfColumns = stoi(argv[4]);
-			Matrix = new __int16 *[numberOfRows];
-			secondMatrix = new __int16 *[numberOfRows];
+			matrixArray[0] = new __int16 *[size[0]];
+			matrixArray[1] = new __int16 *[size[1]];
 
-			for (int i = 0; i < numberOfRows; i++)
+			for (int i = 0; i < size[0]; i++) 
 			{
-				Matrix[i] = new __int16[numberOfColumns];
-				secondMatrix[i] = new __int16[numberOfColumns];
+				matrixArray[0][i] = new __int16[size[1] + 1];
+			}
+			for (int i = 0; i < size[2]; i++) 
+			{
+				matrixArray[1][i] = new __int16[size[1] + 1];
 			}
 
-			for (int i = 0; i < numberOfRows; i++)
-				for (int j = 0; j < numberOfColumns; j++)
-					inFile >> Matrix[i][j];
-			for (int i = 0; i < numberOfRows; i++)
-				for (int j = 0; j < numberOfColumns; j++)
-					inFile >> secondMatrix[i][j];
+			for (int i = 0; i < size[0]; i++)
+				for (int j = 0; j < size[1]; j++)
+					inFile >> matrixArray[0][i][j];
+	
+			for (int i = 0; i < size[0]; i++) 
+				for (int j = 0; j < size[1]; j++) 
+					inFile >> matrixArray[1][i][j];
 
-			vector < HANDLE > threads;
+			//wartownicy
+			for (int i = 0; i < size[0]; i++) {
+				matrixArray[0][i][size[1]] = 0;
+			}
+
+			threadsArray = new std::thread[numberOfThreads];
+			threadsArea = new int[numberOfThreads + 1];
+
+			for (int i = 0; i < numberOfThreads + 1; i++)
+				threadsArea[i] = size[0] * i / numberOfThreads;
+
+			for (int i = 0; i < numberOfThreads + 1; i++)
+				std::cout  << i << " " << threadsArea[i] << std::endl;
 
 			if (strcmp(argv[1], "cpp") == 0)
 			{
-				for (int j = 0; j < numberOfThreads; j++)
+				HMODULE subLib = LoadLibrary(L"JA_Cpp_Dll.dll");
+				if (!subLib)
 				{
-					HANDLE hThread = (HANDLE)_beginthread(ThreadProcCpp, 1, NULL);
-					threads.push_back(hThread);
-				}
-				if (threads.size() > 0)
-				{
-					WaitForMultipleObjects(threads.size(), &threads[0], TRUE, 15000);	//15s aby watki sie skonczyly
+					subtraction subCpp = (subtraction)GetProcAddress(subLib, "subtraction");
+
+					if (subCpp != NULL)
+					{
+						for (int i = 0; i < numberOfThreads; i++)
+							threadsArray[i] = std::thread(subCpp, matrixArray, &threadsArea[i], size[1]);
+
+						for (int i = 0; i < numberOfThreads; i++)
+							threadsArray[i].join();
+					}
+
+					FreeLibrary(subLib);
+					/*
+					for (int i = 0; i < numberOfThreads; i++)
+					{
+						area[0] = threadsArea[i];
+						area[1] = threadsArea[i + 1];
+						threadsArray[i] = std::thread(MyClass::subtraction, matrixArray, area, size[1]);
+					}
+
+					for (int i = 0; i < numberOfThreads; i++)
+						threadsArray[i].join(); */
 				}
 			}
 			else if (strcmp(argv[1], "asm") == 0)
@@ -105,20 +114,24 @@ int main(int argc, char* argv[])
 
 					if (myFunc != NULL)
 					{
-						cout << (DWORD)(myFunc()) << endl;
+						for (int i = 0; i < numberOfThreads; i++)
+							threadsArray[i] = std::thread(myFunc, matrixArray, &threadsArea[i], size[1]);
+
+						for (int i = 0; i < numberOfThreads; i++)
+							threadsArray[i].join();
 					}
 
 					FreeLibrary(lib);
 				}
+				
+				std::fstream outFile;
+				outFile.open("wynik.txt", std::ios::out);
+				if (outFile.good()) 
+				{
+					for (int i = 0; i < size[0]; i++)
+						for (int j = 0; j < size[1]; j++)
+							outFile << matrixArray[1][i][j] << "\t";
 
-				fstream outFile;
-				outFile.open("wynik.txt", ios::out);
-				if (outFile.good()) {
-					for (int i = 0; i < numberOfRows; i++) {
-						for (int j = 0; j < numberOfColumns; j++) {
-							outFile << Matrix[i][j] << " ";
-						}
-					}
 				}
 				outFile.close();
 
@@ -128,19 +141,7 @@ int main(int argc, char* argv[])
 	}
 
 	t = clock() - t;
-	cout << "Time: " << t << " ms" << endl;
-	
-	for (int i = 0; i < stoi(argv[3]); i++) 
-	{
-		delete(Matrix[i]);
-		delete(secondMatrix[i]);
-		Matrix[i] = NULL;
-		secondMatrix[i] = NULL;
-	}
-	delete(Matrix);
-	delete(secondMatrix);
-	Matrix = NULL;
-	secondMatrix = NULL;
+	std::cout << "Time: " << t << " ms" << std::endl;
 
 	system("PAUSE");
 	return 0;

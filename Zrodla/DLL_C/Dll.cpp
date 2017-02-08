@@ -1,18 +1,14 @@
 #include "Dll.h"
 #include <iostream>
-#include <stdlib.h>
-#include <stdio.h>
 
-#define DLL_EXPORT
-
-
-extern "C"
+void MyClass::subtraction(__int16 ***tab, int area[2], int size)
 {
-	DECLDIR void subtraction(double **tab1, double **tab2, int sizeOfMatrix[2])
+	__int16 *A, *B;
+	for (int i = area[0]; i < area[1]; i++)
 	{
-		for (int i = 0; i<sizeOfMatrix[1]; ++i)
-			for (int j = 0; j<sizeOfMatrix[0]; ++j)
-				tab1[i][j] =-tab2[i][j];
+		A = tab[0][i];
+		B = tab[1][i];
+		for (int j = 0; j < size; j++)
+			B[j] -= A[j];
 	}
-
 }
