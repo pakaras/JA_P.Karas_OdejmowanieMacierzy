@@ -1,4 +1,4 @@
-﻿#include <iostream> 
+﻿#include <iostream>
 #include <Windows.h>
 #include <thread>
 #include <string>
@@ -13,26 +13,26 @@ int main(int argc, char* argv[])
 {
 
 	int numberOfThreads;
-	unsigned int threadCount=std::thread::hardware_concurrency();
-	
+	unsigned int threadCount=std::thread::hardware_concurrency();   //liczba wątków
+
 	clock_t t;
 	t = clock();
 
 	HMODULE lib;
 	subtractionAsm myFunc;
 
-	if (argc >= 5) 
-	{ 
-		if (argc = 6) 
-		{ 
+	if (argc >= 5)
+	{
+		if (argc = 6)   //jeśli podano 6 argumentów, to liczba wątków jest zczytywana jako 6. parametr
+		{
 			numberOfThreads = std::stoi(argv[5]);
 		}
-		else 
+		else
 		{
 			numberOfThreads = threadCount;
 		}
-		
-		std::thread *threadsArray = NULL; 
+
+		std::thread *threadsArray = NULL;
 		int *threadsArea = NULL;
 		int size[2] = { std::stoi(argv[3]), std::stoi(argv[4])};
 		int area[2];
@@ -40,17 +40,17 @@ int main(int argc, char* argv[])
 
 		std::fstream inFile;
 		inFile.open(argv[2], std::ios::in | std::ios::out);
-		if (inFile.good() == true) 
+		if (inFile.good() == true)
 		{
-
+        // wczytywanie zmiennych z pliku
 			matrixArray[0] = new __int16 *[size[0]];
 			matrixArray[1] = new __int16 *[size[1]];
 
-			for (int i = 0; i < size[0]; i++) 
+			for (int i = 0; i < size[0]; i++)
 			{
 				matrixArray[0][i] = new __int16[size[1] + 1];
 			}
-			for (int i = 0; i < size[2]; i++) 
+			for (int i = 0; i < size[2]; i++)
 			{
 				matrixArray[1][i] = new __int16[size[1] + 1];
 			}
@@ -58,9 +58,9 @@ int main(int argc, char* argv[])
 			for (int i = 0; i < size[0]; i++)
 				for (int j = 0; j < size[1]; j++)
 					inFile >> matrixArray[0][i][j];
-	
-			for (int i = 0; i < size[0]; i++) 
-				for (int j = 0; j < size[1]; j++) 
+
+			for (int i = 0; i < size[0]; i++)
+				for (int j = 0; j < size[1]; j++)
 					inFile >> matrixArray[1][i][j];
 
 			//wartownicy
@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
 
 			for (int i = 0; i < numberOfThreads + 1; i++)
 				std::cout  << i << " " << threadsArea[i] << std::endl;
-
+            //uruchamianie biblioteki napisanej w c++
 			if (strcmp(argv[1], "cpp") == 0)
 			{
 				HMODULE subLib = LoadLibrary(L"JA_Cpp_Dll.dll");
@@ -94,18 +94,9 @@ int main(int argc, char* argv[])
 					}
 
 					FreeLibrary(subLib);
-					/*
-					for (int i = 0; i < numberOfThreads; i++)
-					{
-						area[0] = threadsArea[i];
-						area[1] = threadsArea[i + 1];
-						threadsArray[i] = std::thread(MyClass::subtraction, matrixArray, area, size[1]);
-					}
-
-					for (int i = 0; i < numberOfThreads; i++)
-						threadsArray[i].join(); */
 				}
 			}
+			//uruchamianie biblioteki napisanej w asemblerze
 			else if (strcmp(argv[1], "asm") == 0)
 			{
 				if ((lib = LoadLibrary(L"JA_Asm_Dll.dll")) != NULL)
@@ -123,10 +114,10 @@ int main(int argc, char* argv[])
 
 					FreeLibrary(lib);
 				}
-				
+				//zapisywanie macierzy wynikowej do pliku
 				std::fstream outFile;
 				outFile.open("wynik.txt", std::ios::out);
-				if (outFile.good()) 
+				if (outFile.good())
 				{
 					for (int i = 0; i < size[0]; i++)
 						for (int j = 0; j < size[1]; j++)
@@ -139,7 +130,7 @@ int main(int argc, char* argv[])
 			inFile.close();
 		}
 	}
-
+    //wyświetlenie czasu
 	t = clock() - t;
 	std::cout << "Time: " << t << " ms" << std::endl;
 

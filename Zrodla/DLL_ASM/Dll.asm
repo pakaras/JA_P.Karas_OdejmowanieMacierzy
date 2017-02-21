@@ -10,43 +10,43 @@ subtractionAsm PROC
 LOCAL A: dw ,B: dw, rowA: dw ,rowB: dw ,elmCptr: dw , area0: dw , area1: dw
 
 	emms
-	movsxd r9,dword ptr [rdx]
-	xor rax,rax
+	movsxd r9,word ptr [rdx]
+	xor ax,ax
 	
 	mov rax,qword ptr[rcx]
-	mov A,rax
+	mov A,ax
 	mov rax,qword ptr[rcx+8]
-	mov B,rax
+	mov B,ax
 	
-	mov eax,dword ptr[rdx]
-	mov area0,rax
-	mov eax,dword ptr[rdx+4]
-	mov area1,rax
+	mov ax,word ptr[rdx]
+	mov area0,ax
+	mov ax,word ptr[rdx+4]
+	mov area1,ax
 
-	mov eax,dword ptr[r8]
+	mov ax,word ptr[r8]
 	mov sizeX,ax
-	mov eax,dword ptr[r8+4]
+	mov ax,word ptr[r8+4]
 	mov sizeY,ax
 	
-	mov rax,A
-	mov rax,qword ptr[rax]
-	mov rowA,rax
+	mov ax,A
+	mov ax,word ptr[rax]
+	mov rowA,ax
 
 	mov r9,area0
 
 	loop_r:
-		cmp r9,area1		;w r9 jest area1
-		jge loop_re
+		cmp r9,area1		;porÛwnywanie czy juø osiπgniÍto koniec przedzia≥u
+		jge loop_re		;jeúli > lub = skok na koniec pÍtli
 
-		mov rax,r9			;przesuwanie po liniach tablicy
-		imul rax,8			
-		add rax,A			;dodanie do adresu pierwszego wiersza
-		mov rax,qword ptr[rax]	;pokazuje gdzie isc wskaünik na pierwszy wiersz
+		mov ax,r9			;przekazanie adresu pierwszego wiersza
+		imul ax,8			
+		add ax,A			;dodanie do adresu pierwszego wiersza
+		mov rax,qword ptr[rax]	;pokazuje gdzie isc, wskaünik na pierwszy wiersz
 		mov rowA, rax		;zapis do zmniennej lokalnej adres pierwszego elementu danego wiersza
 		
 		mov rax,r10
 		imul rax,8
-		add rax,B
+		add ax,B
 		mov rax,qword ptr[rax]
 		mov rowB, rax
 
@@ -56,23 +56,16 @@ LOCAL A: dw ,B: dw, rowA: dw ,rowB: dw ,elmCptr: dw , area0: dw , area1: dw
 		mov rcx,rowA
 
 		mov rax,elmCptr
-		movsd xmm3,qword ptr[rax]
+		movsd mm3,qword ptr[rax]
 
 			loop_j:
 				cmp ax,sizeY
 				jge loop_je
-
-				movaps xmm2,oword ptr[rdx] 
-				add rdx,16
-
-				movaps xmm1,oword ptr[rcx] 
-				add rcx,16
-
 				
-				movq xmm0, A[0]
-				movq xmm1, B[0]
-				psubw xmm0, xmm1	
-				movq B[0], xmm0	
+				movq mm0, A[0]	;do mm0 idπ wartoúci z macierzy A
+				movq mm1, B[0]	;do mm1 idπ wartoúci z macierzy B
+				psubb mm0, mm1	;odejmowanie z wykorzystaniem instrukcji wektorowej
+				movq B[0], mm0	;zapisanie wartoúci do macierzy B
 
 				add r11,2
 
@@ -83,11 +76,9 @@ LOCAL A: dw ,B: dw, rowA: dw ,rowB: dw ,elmCptr: dw , area0: dw , area1: dw
 			add r10,1 
 			jmp loop_r
 
-
 loop_re:	
-mov rax,1
+mov ax,1
 ret
-
 
 	subtractionAsm endp
 end
